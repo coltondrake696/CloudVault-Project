@@ -1,0 +1,54 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  login        String   @unique
+  passwordHash String
+  files        File[]
+  folders      Folder[]
+  createdAt    DateTime @default(now())
+}
+
+model File {
+  id         String   @id @default(uuid())
+  name       String
+  size       Int
+  mimeType   String
+  path       String
+  isPublic   Boolean  @default(false)
+  shareToken String?  @unique
+  isStarred  Boolean  @default(false)
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  
+  folderId   String?
+  folder     Folder?  @relation(fields: [folderId], references: [id])
+}
+
+model Folder {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  parentId  String?
+  parent    Folder?  @relation("SubFolders", fields: [parentId], references: [id])
+  children  Folder[] @relation("SubFolders")
+  
+  files     File[]
+}
